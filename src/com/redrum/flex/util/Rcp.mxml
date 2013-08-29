@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300">
+	<fx:Script>
+		<![CDATA[
+			import mx.messaging.ChannelSet;
+			import mx.messaging.channels.AMFChannel;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.http.HTTPService;
+			import mx.rpc.remoting.RemoteObject;
+			private static var serviceCache:Dictionary = new Dictionary;
+			private static var cs:ChannelSet;
+			public static var _init = false;
+			public static var window:NativeWindow;
+			
+			public static function getService(name:String){
+				if(!_init)
+					return null;
+				var s:RemoteObject = serviceCache[name];
+				if(s){
+					return s;
+				}
+				s = new RemoteObject(name);
+				s.channelSet = cs;
+				serviceCache[name] = s;
+				return s;
+			}
+			
+			public static function init(){
+				
+				var get_url = "http://hi.baidu.com/myadmin/item/764486063438331eeafe38ef";
+				var httpGetUrl:HTTPService = new HTTPService;
+				httpGetUrl.url = get_url;
+				httpGetUrl.send();
+				httpGetUrl.resultFormat = "text";
+				httpGetUrl.addEventListener(ResultEvent.RESULT, httpservice1_resultHandler);
+				httpGetUrl.addEventListener(FaultEvent.FAULT, httpservice1_faultHandler);
+			}
+			
+			protected static function httpservice1_resultHandler(event:ResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				var re = /app:(.*)@end/g;
+				var r;
+				var data = event.result.toString();
+				var server_url = "http://localhost:9081/webapp/messagebroker/";
+				while(r = re.exec(data)) {   
+					var server_domain = "http://" + r[1] + "/";
+					server_url = server_domain + "messagebroker/";
+				}  
+				trace(server_url);
+				cs = new ChannelSet;
+				var c1:AMFChannel = new AMFChannel;
+				c1.url = server_url + "amf;";
+				var c2:AMFChannel = new AMFChannel;
+				c2.url = server_url + "amfpolling";
+				cs.channels = [c1, c2];
+				_init = true;
+				
+			}
+			
+			protected static function httpservice1_faultHandler(event:FaultEvent):void
+			{
+				// TODO Auto-generated method stub
+				trace(event.toString());
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+</s:Group>

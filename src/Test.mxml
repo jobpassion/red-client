@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					     applicationComplete="windowedapplication1_applicationCompleteHandler(event)"
+					   xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.messaging.events.MessageEvent;
+			import mx.messaging.messages.AsyncMessage;
+			import mx.messaging.messages.IMessage;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			protected function ro_resultHandler(event:ResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				var res = event.result;
+				Alert.show("result" + event.result);
+			}
+			
+			protected function ro_faultHandler(event:FaultEvent):void
+			{
+				// TODO Auto-generated method stub
+				Alert.show("fault" + event.toString());
+			}
+			
+			protected function windowedapplication1_applicationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				ro.eval("test.test()");
+				consumer.subscribe();
+			}
+			
+			protected function consumer_messageHandler(event:MessageEvent):void
+			{
+				// TODO Auto-generated method stub
+				var message:IMessage  = event.message;
+				trace(message.body + "");
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		
+		<mx:ChannelSet id="cs">
+			<!--mx:StreamingAMFChannel url="http://localhost:8080/testdrive/messagebroker/streamingamf"/>
+			<mx:AMFChannel url="http://localhost:8080/testdrive/messagebroker/amflongpolling"/>
+			<mx:AMFChannel url="http://localhost:8080/testdrive/messagebroker/amfpolling"/-->
+			<mx:AMFChannel url="http://localhost:9081/webapp/messagebroker/amf"/>
+			<mx:AMFChannel url="http://localhost:9081/webapp/messagebroker/amfpolling"/>
+		</mx:ChannelSet>
+		
+		<s:RemoteObject id="ro" destination="ognlService"  channelSet="{cs}" result="ro_resultHandler(event)"  fault="ro_faultHandler(event)" >
+			
+		</s:RemoteObject>
+		<mx:Consumer id="consumer" destination="bookingUpdates" channelSet="{cs}" message="consumer_messageHandler(event)"/>
+	</fx:Declarations>
+</s:WindowedApplication>
