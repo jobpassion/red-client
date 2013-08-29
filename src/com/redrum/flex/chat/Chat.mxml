@@ -7,6 +7,7 @@
 			import com.redrum.flex.util.Rcp;
 			
 			import mx.collections.ArrayCollection;
+			import mx.controls.TextArea;
 			import mx.events.FlexEvent;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -31,8 +32,9 @@
 				if(null == arr)
 					return;
 				for(var i=0; i<arr.length; i++){
-					content.text += arr.getItemAt(i).message + "\n";
+					content.text += to.text + ":\n    " +arr.getItemAt(i).message + "\n";
 				}
+				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight; 
 				if(arr.length > 0){
 					Rcp.window.notifyUser(NotificationType.CRITICAL);
 				}
@@ -45,6 +47,9 @@
 				chatService.send(from.text, to.text, sendMsg.text);
 				chatService.addEventListener(ResultEvent.RESULT, succ);
 				chatService.addEventListener(FaultEvent.FAULT, fault);
+				content.text += from.text + ":" + "\n    " + sendMsg.text + "\n";
+				sendMsg.text = "";
+				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight; 
 			}
 			
 			function succ(e){
@@ -52,6 +57,15 @@
 			}
 			function fault(e){
 				trace(e);
+			}
+			
+			protected function sendMsg_keyDownHandler(event:KeyboardEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				if(event.keyCode == 13 && event.ctrlKey){
+					btn_send_clickHandler(null);
+				}
 			}
 			
 		]]>
@@ -66,9 +80,9 @@
 			<s:Label text="对方名字:"/>
 			<s:TextInput id="to"/>
 		</s:HGroup>
-		<s:TextArea id="content" width="100%" height="100%"/>
+		<s:TextArea id="content" width="100%" editable="false" height="100%"/>
 		<s:HGroup width="100%" height="50">
-			<s:TextArea id="sendMsg" width="80%" height="100%"/>
+			<s:TextArea id="sendMsg" width="80%" height="100%" keyDown="sendMsg_keyDownHandler(event)"/>
 			<s:Button id="btn_send" label="发送" click="btn_send_clickHandler(event)"/>
 		</s:HGroup>
 	</s:VGroup>
