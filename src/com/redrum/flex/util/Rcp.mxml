@@ -6,14 +6,26 @@
 		<![CDATA[
 			import mx.messaging.ChannelSet;
 			import mx.messaging.channels.AMFChannel;
+			import mx.messaging.channels.StreamingAMFChannel;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.rpc.http.HTTPService;
 			import mx.rpc.remoting.RemoteObject;
+			
+			import spark.components.Application;
 			private static var serviceCache:Dictionary = new Dictionary;
-			private static var cs:ChannelSet;
+			public static var cs:ChannelSet;
 			public static var _init = false;
 			public static var window:NativeWindow;
+			private static var _application:Application;
+			
+			public static function set application(app){
+				_application = app;
+				window = app.nativeWindow;
+			}
+			public static function get application(){
+				return _application;
+			}
 			
 			public static function getService(name:String){
 				if(!_init)
@@ -56,8 +68,12 @@
 				c1.url = server_url + "amf;";
 				var c2:AMFChannel = new AMFChannel;
 				c2.url = server_url + "amfpolling";
+				var c3:StreamingAMFChannel = new StreamingAMFChannel;
+				c3.url = server_url + "my-streaming-amf";
 				cs.channels = [c1, c2];
 				_init = true;
+				
+				_application.dispatchEvent(new Event("rpc_init"));
 				
 			}
 			

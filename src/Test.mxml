@@ -30,7 +30,7 @@
 			protected function windowedapplication1_applicationCompleteHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
-				ro.eval("test.test()");
+//				ro.eval("test.test()");
 				consumer.subscribe();
 			}
 			
@@ -50,13 +50,14 @@
 			<!--mx:StreamingAMFChannel url="http://localhost:8080/testdrive/messagebroker/streamingamf"/>
 			<mx:AMFChannel url="http://localhost:8080/testdrive/messagebroker/amflongpolling"/>
 			<mx:AMFChannel url="http://localhost:8080/testdrive/messagebroker/amfpolling"/-->
-			<mx:AMFChannel url="http://localhost:9081/webapp/messagebroker/amf"/>
-			<mx:AMFChannel url="http://localhost:9081/webapp/messagebroker/amfpolling"/>
+			<!--<mx:AMFChannel url="http://localhost:9081/webapp/messagebroker/amf"/>
+			<mx:AMFChannel url="http://localhost:9081/webapp/messagebroker/amfpolling"/>-->
+			<mx:StreamingAMFChannel url="http://localhost:9081/webapp/messagebroker/streamingamf"/>
 		</mx:ChannelSet>
 		
-		<s:RemoteObject id="ro" destination="ognlService"  channelSet="{cs}" result="ro_resultHandler(event)"  fault="ro_faultHandler(event)" >
+		<!--<s:RemoteObject id="ro" destination="ognlService"  channelSet="{cs}" result="ro_resultHandler(event)"  fault="ro_faultHandler(event)" >
 			
-		</s:RemoteObject>
+		</s:RemoteObject>-->
 		<mx:Consumer id="consumer" destination="bookingUpdates" channelSet="{cs}" message="consumer_messageHandler(event)"/>
 	</fx:Declarations>
 </s:WindowedApplication>

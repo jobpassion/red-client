@@ -8,11 +8,15 @@
 			
 			import mx.events.FlexEvent;
 			
+			import spark.components.Application;
+			public static var application:Application;
+			
 			protected function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
 				Rcp.init();
-				Rcp.window = this.nativeWindow;
+				Rcp.application = this;
+				application = this;
 			}
 			
 		]]>
