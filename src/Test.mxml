@@ -5,7 +5,10 @@
 					   xmlns:mx="library://ns.adobe.com/flex/mx">
 	<fx:Script>
 		<![CDATA[
+			import flash.utils.setTimeout;
+			
 			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
 			import mx.events.FlexEvent;
 			import mx.messaging.events.MessageEvent;
 			import mx.messaging.messages.AsyncMessage;
@@ -31,11 +34,24 @@
 			{
 				// TODO Auto-generated method stub
 //				ro.eval("test.test()");
-				consumer.subscribe();
+				consumer.subscribe("consumer" + Math.random());
+				
+				setTimeout(function(){
+					
+					var message:AsyncMessage = new AsyncMessage();
+					message.body = "hello world";
+					message.headers = {to:'abc'};
+					message.clientId = "abc";
+					message.messageId = "msg" + Math.random();
+//					message.messageId = "def";
+					producer.send(message);
+				}, 3000);
+			
 			}
 			
 			protected function consumer_messageHandler(event:MessageEvent):void
 			{
+				
 				// TODO Auto-generated method stub
 				var message:IMessage  = event.message;
 				trace(message.body + "");
@@ -58,6 +74,7 @@
 		<!--<s:RemoteObject id="ro" destination="ognlService"  channelSet="{cs}" result="ro_resultHandler(event)"  fault="ro_faultHandler(event)" >
 			
 		</s:RemoteObject>-->
-		<mx:Consumer id="consumer" destination="bookingUpdates" channelSet="{cs}" message="consumer_messageHandler(event)"/>
+		<mx:Consumer id="consumer" selector="to = 'abc'" destination="bookingUpdates" channelSet="{cs}" message="consumer_messageHandler(event)"/>
+		<s:Producer id="producer" destination="bookingUpdates" channelSet="{cs}" />
 	</fx:Declarations>
 </s:WindowedApplication>

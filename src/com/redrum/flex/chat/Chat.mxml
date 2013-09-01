@@ -1,66 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
-		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300" creationComplete="group1_creationCompleteHandler(event)">
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="400" height="300" creationComplete="group1_creationCompleteHandler(event)">
 	<fx:Script>
 		<![CDATA[
 			import com.redrum.flex.util.Rcp;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.TextArea;
+			import mx.core.FlexGlobals;
 			import mx.events.FlexEvent;
 			import mx.messaging.Consumer;
+			import mx.messaging.Producer;
 			import mx.messaging.events.MessageEvent;
+			import mx.messaging.messages.AsyncMessage;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.rpc.remoting.RemoteObject;
+			
+			import spark.components.Application;
+			import spark.components.WindowedApplication;
+			import spark.events.TextOperationEvent;
+			
+			private var producer:Producer;
+			private var consumer:Consumer;
+			var chatService;
 			
 			protected function group1_creationCompleteHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
 				
-				Main.application.addEventListener("rpc_init", function(){
-//					var timer:Timer = new Timer(4000);
-//					timer.addEventListener(TimerEvent.TIMER, function(){
-//						if(!Rcp._init)
-//							return;
-//						var chatService = Rcp.getService("chatService");
-//						chatService.queryNew(from.text);
-//						chatService.addEventListener(ResultEvent.RESULT, receive);
-//					});
+				(FlexGlobals.topLevelApplication as Application).addEventListener("rpc_init", function(){
+					chatService = Rcp.getService("chatService");
+					var timer:Timer = new Timer(4000);
+					timer.addEventListener(TimerEvent.TIMER, function(){
+						if(!Rcp._init)
+							return;
+						chatService.queryNew(from.text);
+						chatService.addEventListener(ResultEvent.RESULT, receive);
+					});
 //					timer.start();
 					
-					var consumer:Consumer = new Consumer;
+					consumer = new Consumer;
 					consumer.destination = "chat_dest";
+					consumer.selector = "to='" + from.text + "'";
 					consumer.channelSet = Rcp.cs;
-					consumer.addEventListener(MessageEvent.MESSAGE, receive);
+					consumer.addEventListener(MessageEvent.MESSAGE, msgReceive);
 					consumer.subscribe();
-				})
+//					consumer.subtopic = "tick";
+					producer = new Producer;
+					producer.destination = "chat_dest";
+					producer.channelSet = Rcp.cs;
+//					producer.subtopic = "tick";
+				});
+				
+				statusTimer.addEventListener(TimerEvent.TIMER, onStatusTimer);
+				if(null != so.data.from){
+					from.text = so.data.from;
+				}
+				
+				if(null != so.data.to){
+					to.text = so.data.to;
+				}
+			}
+			function onStatusTimer(e){
+				(FlexGlobals.topLevelApplication as WindowedApplication).status = "";
 			}
 			
 			function receive(e:ResultEvent){
 				var arr:ArrayCollection = ArrayCollection(e.result);
-				if(null == arr)
+				var ids:ArrayCollection = new ArrayCollection;
+				if(null == arr || arr.length == 0)
 					return;
 				for(var i=0; i<arr.length; i++){
-					content.text += to.text + ":\n    " +arr.getItemAt(i).message + "\n";
+					handleMsgReceived(arr.getItemAt(i));
+					ids.addItem(arr.getItemAt(i).id);
 				}
-				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight; 
-				if(arr.length > 0){
-					Rcp.window.notifyUser(NotificationType.CRITICAL);
+				chatService.setRead(ids);
+			}
+			var statusTimer:Timer = new Timer(3000, 1);
+			var inputTimer:Timer = new Timer(2000, 1);
+			
+			function msgReceive(e:MessageEvent){
+				switch(e.message.headers.type){
+					case "msg":{
+						handleMsgReceived(e.message.body);
+						chatService.setRead(new ArrayCollection([e.message.body.id]));
+						break;
+					}
+						
+					case "sys.input":{
+						statusTimer.reset();
+						statusTimer.start();
+						(FlexGlobals.topLevelApplication as WindowedApplication).status = e.message.body.from + "正在输入...";
+					}
+					
+					
 				}
 			}
+			var msgReceivedQuene:ArrayCollection = new ArrayCollection;
+			
+			function handleMsgReceived(msg){
+				var id = msg.id;
+//				for(var i=0; i<msgReceivedQuene.length; i++){
+//					if(id == msgReceivedQuene.getItemAt(i))
+//						return;
+//				}
+				if(msgReceivedQuene.contains(id)){
+					return;
+					trace("concend");
+				}
+				msgReceivedQuene.addItem(id);
+				msgReceivedQuene.source = msgReceivedQuene.source.slice(-30, -1);
+				content.text += to.text + ":\n    " +msg.message + "\n";
+				content.validateNow();
+				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight + 1000; 
+				Rcp.window.notifyUser(NotificationType.CRITICAL);
+			}
+			var so:SharedObject = SharedObject.getLocal("/");
 			
 			protected function btn_send_clickHandler(event:MouseEvent):void
 			{
 				// TODO Auto-generated method stub
-				var chatService:RemoteObject = Rcp.getService("chatService");
-				chatService.send(from.text, to.text, sendMsg.text);
-				chatService.addEventListener(ResultEvent.RESULT, succ);
-				chatService.addEventListener(FaultEvent.FAULT, fault);
+//				var chatService:RemoteObject = Rcp.getService("chatService");
+//				chatService.send(from.text, to.text, sendMsg.text);
+//				chatService.addEventListener(ResultEvent.RESULT, succ);
+//				chatService.addEventListener(FaultEvent.FAULT, fault);
+				
+				
+				var message:AsyncMessage = new AsyncMessage();
+				message.body = {message:sendMsg.text, to:to.text, from:from.text};
+				message.headers = {type:'msg', to:to.text};
+				message.clientId = from.text;
+//				message.messageId = "msg" + Math.random();
+				producer.send(message);
 				content.text += from.text + ":" + "\n    " + sendMsg.text + "\n";
 				sendMsg.text = "";
-				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight; 
+				content.validateNow();
+				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight + 1000; 
 			}
 			
 			function succ(e){
@@ -77,6 +155,34 @@
 				if(event.keyCode == 13 && event.ctrlKey){
 					btn_send_clickHandler(null);
 				}
+				
+				if(inputTimer.running){
+					return;
+				}
+				inputTimer.reset();
+				inputTimer.start();
+				var message:AsyncMessage = new AsyncMessage();
+				message.body = {to:to.text, from:from.text};
+				message.headers = {type:'sys.input', to:to.text};
+				message.clientId = from.text;
+				//				message.messageId = "msg" + Math.random();
+				producer.send(message);
+			}
+			
+			protected function from_changeHandler(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(null == consumer)
+					return;
+				consumer.selector = "to='" + from.text + "'";
+				
+				so.data.from = from.text;
+			}
+			
+			protected function to_changeHandler(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				so.data.to = to.text;
 			}
 			
 		]]>
@@ -85,16 +191,18 @@
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
 	</fx:Declarations>
 	<s:VGroup width="100%" height="100%">
-		<s:HGroup width="100%" height="50">
-			<s:Label text="你的名字:"/>
-			<s:TextInput id="from"/>
-			<s:Label text="对方名字:"/>
-			<s:TextInput id="to"/>
+		<s:HGroup width="100%" height="29" paddingLeft="10" paddingTop="8">
+			<s:Label height="100%" text="你的名字:" textAlign="center" verticalAlign="middle"/>
+			<s:TextInput id="from" change="from_changeHandler(event)" />
+			<s:Label height="100%" text="对方名字:" textAlign="center" verticalAlign="middle"/>
+			<s:TextInput id="to" change="to_changeHandler(event)"/>
 		</s:HGroup>
-		<s:TextArea id="content" width="100%" editable="false" height="100%"/>
+		<s:TextArea id="content" width="100%" height="100%" editable="false" paddingTop="3"/>
 		<s:HGroup width="100%" height="50">
-			<s:TextArea id="sendMsg" width="80%" height="100%" keyDown="sendMsg_keyDownHandler(event)"/>
-			<s:Button id="btn_send" label="发送" click="btn_send_clickHandler(event)"/>
+			<s:TextArea id="sendMsg" width="100%" height="100%"
+						keyDown="sendMsg_keyDownHandler(event)" />
+			<s:Button id="btn_send" width="50" height="100%" label="发送"
+					  click="btn_send_clickHandler(event)"/>
 		</s:HGroup>
 	</s:VGroup>
 </s:Group>

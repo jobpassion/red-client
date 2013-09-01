@@ -4,6 +4,7 @@
 		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300">
 	<fx:Script>
 		<![CDATA[
+			import mx.core.FlexGlobals;
 			import mx.messaging.ChannelSet;
 			import mx.messaging.channels.AMFChannel;
 			import mx.messaging.channels.StreamingAMFChannel;
@@ -13,11 +14,13 @@
 			import mx.rpc.remoting.RemoteObject;
 			
 			import spark.components.Application;
+			import spark.components.WindowedApplication;
 			private static var serviceCache:Dictionary = new Dictionary;
 			public static var cs:ChannelSet;
 			public static var _init = false;
 			public static var window:NativeWindow;
 			private static var _application:Application;
+			private static var argus;
 			
 			public static function set application(app){
 				_application = app;
@@ -49,6 +52,12 @@
 				httpGetUrl.resultFormat = "text";
 				httpGetUrl.addEventListener(ResultEvent.RESULT, httpservice1_resultHandler);
 				httpGetUrl.addEventListener(FaultEvent.FAULT, httpservice1_faultHandler);
+				(FlexGlobals.topLevelApplication as WindowedApplication).addEventListener(InvokeEvent.INVOKE, function (event:InvokeEvent):void
+				{
+					// TODO Auto-generated method stub
+					trace(event.arguments.toString());
+					argus = event.arguments.toString();
+				});
 			}
 			
 			protected static function httpservice1_resultHandler(event:ResultEvent):void
@@ -60,17 +69,18 @@
 				var server_url = "http://localhost:9081/webapp/messagebroker/";
 				while(r = re.exec(data)) {   
 					var server_domain = "http://" + r[1] + "/";
-					server_url = server_domain + "messagebroker/";
+					if("dev" != argus)
+						server_url = server_domain + "messagebroker/";
 				}  
 				trace(server_url);
 				cs = new ChannelSet;
-				var c1:AMFChannel = new AMFChannel;
-				c1.url = server_url + "amf;";
-				var c2:AMFChannel = new AMFChannel;
-				c2.url = server_url + "amfpolling";
+//				var c1:AMFChannel = new AMFChannel;
+//				c1.url = server_url + "amf;";
+//				var c2:AMFChannel = new AMFChannel;
+//				c2.url = server_url + "amfpolling";
 				var c3:StreamingAMFChannel = new StreamingAMFChannel;
-				c3.url = server_url + "my-streaming-amf";
-				cs.channels = [c1, c2];
+				c3.url = server_url + "streamingamf";
+				cs.channels = [c3];
 				_init = true;
 				
 				_application.dispatchEvent(new Event("rpc_init"));

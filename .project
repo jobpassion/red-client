@@ -21,4 +21,10 @@
 		<nature>com.adobe.flexbuilder.project.flexnature</nature>
 		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
 	</natures>
+	<variableList>
+		<variable>
+			<name>PLAYERGLOBAL_HOME</name>
+			<value>%25FLEX_HOME%25/frameworks/libs/player</value>
+		</variable>
+	</variableList>
 </projectDescription>
