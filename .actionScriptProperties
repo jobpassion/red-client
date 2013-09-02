@@ -13,11 +13,15 @@
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
+  <theme themeIsDefault="false" themeIsSDK="true" themeLocation="${SDK_THEMES_DIR}/samples/themes/spark_sky"/>
   <applications>
     <application path="Main.mxml">
       <airExcludes/>
     </application>
     <application path="Test.mxml">
+      <airExcludes/>
+    </application>
+    <application path="Test2.mxml">
       <airExcludes/>
     </application>
   </applications>

@@ -2,10 +2,11 @@
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
 		 xmlns:s="library://ns.adobe.com/flex/spark"
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
-		 width="400" height="300" creationComplete="group1_creationCompleteHandler(event)">
+		 width="100%" height="100%" creationComplete="group1_creationCompleteHandler(event)">
 	<fx:Script>
 		<![CDATA[
 			import com.redrum.flex.util.Rcp;
+			import com.redrum.flex.util.Util;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.TextArea;
@@ -15,6 +16,8 @@
 			import mx.messaging.Producer;
 			import mx.messaging.events.MessageEvent;
 			import mx.messaging.messages.AsyncMessage;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.Responder;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.rpc.remoting.RemoteObject;
@@ -22,10 +25,11 @@
 			import spark.components.Application;
 			import spark.components.WindowedApplication;
 			import spark.events.TextOperationEvent;
+			import spark.formatters.DateTimeFormatter;
 			
 			private var producer:Producer;
 			private var consumer:Consumer;
-			var chatService;
+			var chatService:RemoteObject;
 			
 			protected function group1_creationCompleteHandler(event:FlexEvent):void
 			{
@@ -37,10 +41,10 @@
 					timer.addEventListener(TimerEvent.TIMER, function(){
 						if(!Rcp._init)
 							return;
-						chatService.queryNew(from.text);
-						chatService.addEventListener(ResultEvent.RESULT, receive);
+						var token:AsyncToken = chatService.queryNew(from.text, to.text);
+						token.addResponder(new mx.rpc.Responder(receive, Util.fail));
 					});
-//					timer.start();
+					timer.start();
 					
 					consumer = new Consumer;
 					consumer.destination = "chat_dest";
@@ -68,8 +72,50 @@
 				(FlexGlobals.topLevelApplication as WindowedApplication).status = "";
 			}
 			
+			function getDuration(timeMillis){
+				var units = [
+					{label:"millis",    mod:1000},
+					{label:"seconds",   mod:60},
+					{label:"minutes",   mod:60},
+					{label:"hours",     mod:24},
+					{label:"days",      mod:7},
+					{label:"weeks",     mod:52}
+				];
+				var duration = new Object();
+				var x = timeMillis;
+				for (var i = 0; i < units.length; i++){
+					var tmp = x % units[i].mod;
+					duration[units[i].label] = tmp;
+					x = (x - tmp) / units[i].mod
+				}
+				var str = "";
+				if(duration.weeks > 0)
+				str += duration.weeks + " 星期, ";
+				if(duration.days > 0)
+				str += duration.days + " 天, ";
+				if(duration.hours > 0)
+				str += duration.hours + " 小时, ";
+				if(duration.minutes > 0)
+				str += duration.minutes + " 分, ";
+				str += duration.seconds + " 秒前在线";
+				return str;
+			}
+			
 			function receive(e:ResultEvent){
 				var arr:ArrayCollection = ArrayCollection(e.result);
+				var status = arr.removeItemAt(0);
+				if(status.diff){
+					if(status.diff < 10 * 1000){
+						statusLable.text = "对方当前在线"; 
+						statusLable.setStyle("backgroundColor", 0x00ff00);
+					}else{
+						var diff = getDuration(status.diff);
+						trace(diff);
+						statusLable.text = "对方" + diff;
+						statusLable.setStyle("backgroundColor", 0xffffff);
+						
+					}
+				}
 				var ids:ArrayCollection = new ArrayCollection;
 				if(null == arr || arr.length == 0)
 					return;
@@ -112,10 +158,13 @@
 					trace("concend");
 				}
 				msgReceivedQuene.addItem(id);
-				msgReceivedQuene.source = msgReceivedQuene.source.slice(-30, -1);
+//				msgReceivedQuene.source = msgReceivedQuene.source.slice(-30, -1);
+//				var date:Date = Date(msg.timestamp);
 				content.text += to.text + ":\n    " +msg.message + "\n";
-				content.validateNow();
-				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight + 1000; 
+				scroller.validateNow();
+//				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight;
+				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maxHeight;
+				scroller.validateNow();
 				Rcp.window.notifyUser(NotificationType.CRITICAL);
 			}
 			var so:SharedObject = SharedObject.getLocal("/");
@@ -137,8 +186,10 @@
 				producer.send(message);
 				content.text += from.text + ":" + "\n    " + sendMsg.text + "\n";
 				sendMsg.text = "";
-				content.validateNow();
-				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight + 1000; 
+				scroller.validateNow();
+//				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight; 
+				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maxHeight;
+				scroller.validateNow();
 			}
 			
 			function succ(e){
@@ -190,17 +241,29 @@
 	<fx:Declarations>
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
 	</fx:Declarations>
-	<s:VGroup width="100%" height="100%">
-		<s:HGroup width="100%" height="29" paddingLeft="10" paddingTop="8">
+	<s:VGroup width="100%" height="100%" gap="1">
+		<s:BorderContainer width="100%" height="29">
+			<s:layout>
+				<s:HorizontalLayout paddingBottom="5" paddingTop="5"/>
+			</s:layout>
 			<s:Label height="100%" text="你的名字:" textAlign="center" verticalAlign="middle"/>
-			<s:TextInput id="from" change="from_changeHandler(event)" />
+			<s:TextInput id="from" width="62" height="100%" change="from_changeHandler(event)"/>
 			<s:Label height="100%" text="对方名字:" textAlign="center" verticalAlign="middle"/>
-			<s:TextInput id="to" change="to_changeHandler(event)"/>
-		</s:HGroup>
-		<s:TextArea id="content" width="100%" height="100%" editable="false" paddingTop="3"/>
+			<s:TextInput id="to" width="61" height="100%" change="to_changeHandler(event)"/>
+			<s:Label id="statusLable" width="175" height="100%" text="" textAlign="center"
+					 verticalAlign="middle"/>
+		</s:BorderContainer>
+		<!--backgroundImage="@Embed('resources/6241580_100215009346_2.jpg')"-->
+		<s:BorderContainer width="100%" height="100%" borderVisible="false">
+			<s:Scroller id="scroller" width="100%" height="100%">
+				
+		<s:RichEditableText id="content" width="100%" height="100%" editable="false" fontSize="16"
+							paddingTop="3"/>
+			</s:Scroller>
+		</s:BorderContainer>
 		<s:HGroup width="100%" height="50">
-			<s:TextArea id="sendMsg" width="100%" height="100%"
-						keyDown="sendMsg_keyDownHandler(event)" />
+			<s:TextArea id="sendMsg" width="100%" height="100%" fontSize="16"
+						keyDown="sendMsg_keyDownHandler(event)"/>
 			<s:Button id="btn_send" width="50" height="100%" label="发送"
 					  click="btn_send_clickHandler(event)"/>
 		</s:HGroup>
