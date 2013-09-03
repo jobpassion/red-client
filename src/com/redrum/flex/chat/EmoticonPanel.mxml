@@ -43,7 +43,43 @@
 						img.width = 20;
 						img.height = 20;
 						img.addEventListener(MouseEvent.CLICK, imgClick);
-						this.addElement(img);
+						content.addElement(img);
+						
+					}
+				}
+				import2();
+			}
+			
+			protected function import2():void
+			{
+				// TODO Auto-generated method stub
+				var emoticonsDir:File = File.applicationDirectory.resolvePath("assets/qisimao");
+				trace(emoticonsDir.getDirectoryListing().length.toString());
+				var files = emoticonsDir.getDirectoryListing();
+				for(var i=0; i<files.length; i++){
+					var f:File = files[i];
+					trace(f.type);
+					if(f.type == ".gif"){
+						//						var img:SWFLoader = new SWFLoader;
+						//						img.source = f.nativePath;
+						//						img.width = 50;
+						//						img.height = 50;
+						//						this.addElement(img);
+						
+						
+//						var gif:GIFPlayer =new GIFPlayer();
+//						gif.load(new URLRequest(f.nativePath));
+//						var uicom:UIComponent = new UIComponent;
+//						uicom.addChild(gif);
+//						this.addElement(uicom);
+					}
+					if(f.type == ".png" || f.type == ".jpg" || f.type == ".gif"){
+						var img:mx.controls.Image = new mx.controls.Image;
+						img.source = "assets/qisimao/" + f.name;
+						img.width = 50;
+						img.height = 50;
+						img.addEventListener(MouseEvent.CLICK, imgClick);
+						content2.addElement(img);
 						
 					}
 				}
@@ -59,7 +95,42 @@
 	<fx:Declarations>
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
 	</fx:Declarations>
-	<s:layout>
-		<s:TileLayout />
-	</s:layout>
+	
+<!--	<mx:ViewStack id="viewstack1" width="100%" height="100%">
+		<s:NavigatorContent width="100%" height="100%" label="视图 1">
+			
+			<s:Scroller width="100%" height="100%" >
+				
+				<s:TileGroup id="content" width="100%" height="100%" >
+				</s:TileGroup>
+			</s:Scroller>
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="视图 2">
+			
+			<s:Scroller width="100%" height="100%" >
+				
+				<s:TileGroup id="content2" width="100%" height="100%" >
+				</s:TileGroup>
+			</s:Scroller>
+		</s:NavigatorContent>
+	</mx:ViewStack>-->
+	
+	
+	<mx:TabNavigator width="100%" height="100%" creationPolicy="all">
+		<s:NavigatorContent width="100%" height="100%" label="QQ表情">
+			<s:Scroller width="100%" height="100%" >
+				
+				<s:TileGroup id="content" width="100%" height="100%" >
+				</s:TileGroup>
+			</s:Scroller>
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="小奇">
+			<s:Scroller width="100%" height="100%" >
+				
+				<s:TileGroup id="content2" width="100%" height="100%" >
+				</s:TileGroup>
+			</s:Scroller>
+		</s:NavigatorContent>
+	</mx:TabNavigator>
+	
 </s:BorderContainer>

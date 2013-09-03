@@ -120,7 +120,8 @@
 				if(duration.minutes > 0)
 				str += duration.minutes + " 分";
 				else
-					str += duration.seconds + " 秒前在线";
+					str += duration.seconds + " 秒";
+				str += "前在线";
 				return str;
 			}
 			
@@ -337,7 +338,9 @@
 			
 			function wave(){
 				var nati:NativeWindow = (FlexGlobals.topLevelApplication as WindowedApplication).nativeWindow;
+				nati.alwaysInFront = true;
 				nati.activate();
+				nati.alwaysInFront = false;
 				
 				Tweener.addTween(nati, {x:nati.x + 10, time:0.001, onComplete:function(){
 					Tweener.addTween(nati, {x:nati.x - 10, y:nati.y - 10, time:0.001, onComplete:function(){
@@ -349,7 +352,9 @@
 											Tweener.addTween(nati, {x:nati.x - 10, y:nati.y + 10, time:0.001, onComplete:function(){
 												Tweener.addTween(nati, {x:nati.x + 10, y:nati.y + 10, time:0.001, onComplete:function(){
 													Tweener.addTween(nati, {x:nati.x, y:nati.y - 10, time:0.001, onComplete:function(){
+														nati.alwaysInFront = true;
 														nati.activate();
+														nati.alwaysInFront = false;
 													}});
 												}});
 											}});
@@ -405,7 +410,7 @@
 				<s:HorizontalLayout paddingLeft="20"/>
 			</s:layout>
 			<s:Image width="30" id="emo" click="emo_clickHandler(event)" height="100%" scaleMode="letterbox"
-					 source="@Embed('assets/emoticons/drool.png')"/>
+					 source="@Embed('assets/emoticons/grin.png')"/>
 			<s:Image width="30" height="100%" scaleMode="letterbox" source="assets/emoticons/angry.png" click="image1_clickHandler(event)"/>
 		</s:BorderContainer>
 		<s:HGroup width="100%" height="50">

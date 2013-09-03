@@ -9,13 +9,16 @@
 			protected function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
-				var appWindow:NativeWindow = this.stage.nativeWindow;
+				var appWindow:NativeWindow = this.nativeWindow;
 				//set window properties
 //				appWindow.visible = true;
 				setInterval(function(){
+//					appWindow.alwaysInFront = true;
+					appWindow.orderToFront();
 					appWindow.activate();
+//					appWindow.alwaysInFront = false;
 					trace(1);
-				}, 5000);
+				}, 1000);
 			}
 			
 		]]>
