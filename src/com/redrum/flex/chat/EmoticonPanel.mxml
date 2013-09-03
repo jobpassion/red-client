@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="250" height="150" creationComplete="group1_creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Image;
+			import mx.controls.SWFLoader;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			
+			import org.bytearray.gif.player.GIFPlayer;
+			
+			import spark.components.Image;
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				var emoticonsDir:File = File.applicationDirectory.resolvePath("assets/emoticons");
+				trace(emoticonsDir.getDirectoryListing().length.toString());
+				var files = emoticonsDir.getDirectoryListing();
+				for(var i=0; i<files.length; i++){
+					var f:File = files[i];
+					trace(f.type);
+					if(f.type == ".gif"){
+						//						var img:SWFLoader = new SWFLoader;
+						//						img.source = f.nativePath;
+						//						img.width = 50;
+						//						img.height = 50;
+						//						this.addElement(img);
+						
+						
+//						var gif:GIFPlayer =new GIFPlayer();
+//						gif.load(new URLRequest(f.nativePath));
+//						var uicom:UIComponent = new UIComponent;
+//						uicom.addChild(gif);
+//						this.addElement(uicom);
+					}
+					if(f.type == ".png" || f.type == ".jpg" || f.type == ".gif"){
+						var img:mx.controls.Image = new mx.controls.Image;
+						img.source = "assets/emoticons/" + f.name;
+						img.width = 20;
+						img.height = 20;
+						img.addEventListener(MouseEvent.CLICK, imgClick);
+						this.addElement(img);
+						
+					}
+				}
+			}
+			function imgClick(e:MouseEvent){
+				var e2:DataEvent = new DataEvent("emo_select");
+				e2.data = (e.currentTarget as mx.controls.Image).source + "";
+				this.dispatchEvent(e2);
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:layout>
+		<s:TileLayout />
+	</s:layout>
+</s:BorderContainer>

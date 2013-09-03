@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					    creationComplete="windowedapplication1_creationCompleteHandler(event)"
+					   xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:chat="com.redrum.flex.chat.*" xmlns:player="org.bytearray.gif.player.*" xmlns:frames="org.bytearray.gif.frames.*">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import org.bytearray.gif.player.GIFPlayer;
+			
+			protected function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				var gif:GIFPlayer =new GIFPlayer();
+				gif.load(new URLRequest("diego.gif"));
+				ui.addChild(gif);
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<mx:UIComponent id="ui">
+		
+	</mx:UIComponent>
+</s:WindowedApplication>

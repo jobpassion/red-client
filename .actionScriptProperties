@@ -24,6 +24,15 @@
     <application path="Test2.mxml">
       <airExcludes/>
     </application>
+    <application path="Test3.mxml">
+      <airExcludes/>
+    </application>
+    <application path="Test4.mxml">
+      <airExcludes/>
+    </application>
+    <application path="Test5.mxml">
+      <airExcludes/>
+    </application>
   </applications>
   <modules/>
   <buildCSSFiles/>

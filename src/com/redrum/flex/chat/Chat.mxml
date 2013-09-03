@@ -2,13 +2,25 @@
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
 		 xmlns:s="library://ns.adobe.com/flex/spark"
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
-		 width="100%" height="100%" creationComplete="group1_creationCompleteHandler(event)">
+		 width="100%" height="100%" creationComplete="group1_creationCompleteHandler(event)" xmlns:chat="com.redrum.flex.chat.*">
 	<fx:Script>
 		<![CDATA[
+			import caurina.transitions.Tweener;
+			
 			import com.redrum.flex.util.Rcp;
 			import com.redrum.flex.util.Util;
 			
+			import flashx.textLayout.conversion.ConversionType;
+			import flashx.textLayout.conversion.TextConverter;
+			import flashx.textLayout.edit.EditManager;
+			import flashx.textLayout.elements.BreakElement;
+			import flashx.textLayout.elements.FlowElement;
+			import flashx.textLayout.elements.ParagraphElement;
+			import flashx.textLayout.elements.SpanElement;
+			import flashx.textLayout.elements.TextFlow;
+			
 			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
 			import mx.controls.TextArea;
 			import mx.core.FlexGlobals;
 			import mx.events.FlexEvent;
@@ -26,6 +38,7 @@
 			import spark.components.WindowedApplication;
 			import spark.events.TextOperationEvent;
 			import spark.formatters.DateTimeFormatter;
+			import spark.utils.TextFlowUtil;
 			
 			private var producer:Producer;
 			private var consumer:Consumer;
@@ -67,6 +80,12 @@
 				if(null != so.data.to){
 					to.text = so.data.to;
 				}
+				dateTimeFormatter.dateTimePattern = "yyyy-MM-dd HH:mm:ss";
+				emoPanel.addEventListener("emo_select", function(e:DataEvent){
+					focusManager.setFocus(sendMsg);
+					(sendMsg.textFlow.interactionManager as EditManager).insertInlineGraphic(e.data, null, null);
+					emoPanel.visible = false;
+				});
 			}
 			function onStatusTimer(e){
 				(FlexGlobals.topLevelApplication as WindowedApplication).status = "";
@@ -89,15 +108,19 @@
 					x = (x - tmp) / units[i].mod
 				}
 				var str = "";
-				if(duration.weeks > 0)
-				str += duration.weeks + " 星期, ";
-				if(duration.days > 0)
-				str += duration.days + " 天, ";
+				if(duration.weeks > 0){
+					
+				str += duration.weeks + " 星期";
+				}else if(duration.days > 0)
+					str += duration.days + "天";
+				else
 				if(duration.hours > 0)
-				str += duration.hours + " 小时, ";
+				str += duration.hours + " 小时";
+				else
 				if(duration.minutes > 0)
-				str += duration.minutes + " 分, ";
-				str += duration.seconds + " 秒前在线";
+				str += duration.minutes + " 分";
+				else
+					str += duration.seconds + " 秒前在线";
 				return str;
 			}
 			
@@ -140,6 +163,11 @@
 						statusTimer.reset();
 						statusTimer.start();
 						(FlexGlobals.topLevelApplication as WindowedApplication).status = e.message.body.from + "正在输入...";
+						break;
+					}
+					case "sys.wave":{
+						wave();
+						break;
 					}
 					
 					
@@ -147,6 +175,7 @@
 			}
 			var msgReceivedQuene:ArrayCollection = new ArrayCollection;
 			
+			var dateTimeFormatter:DateTimeFormatter = new DateTimeFormatter();
 			function handleMsgReceived(msg){
 				var id = msg.id;
 //				for(var i=0; i<msgReceivedQuene.length; i++){
@@ -157,10 +186,37 @@
 					return;
 					trace("concend");
 				}
+				trace(msg.timestamp);
+				var timestamp:Date = msg.timestamp as Date;
+				timestamp.time += 8 * 60 * 60 * 1000;
+				trace(dateTimeFormatter.format(timestamp));
+				var time = dateTimeFormatter.format(timestamp);
 				msgReceivedQuene.addItem(id);
 //				msgReceivedQuene.source = msgReceivedQuene.source.slice(-30, -1);
 //				var date:Date = Date(msg.timestamp);
-				content.text += to.text + ":\n    " +msg.message + "\n";
+//				content.text += to.text + ":          ---------------------" + time + "\n    " +msg.message + "\n";
+				var head:ParagraphElement = new ParagraphElement;
+				var headText:SpanElement = new SpanElement;
+				if(new Date().time - timestamp.time > 5 * 60 * 1000)
+					headText.text = (to.text + ":          ---------------------" + time);
+				else
+					headText.text = (to.text + ":");
+				head.addChild(headText);
+				content.textFlow.addChild(head);
+				var tf:TextFlow = TextConverter.importToFlow(msg.message, TextConverter.TEXT_FIELD_HTML_FORMAT);
+				var cs = tf.mxmlChildren;
+				for(var i=0; i<cs.length; i++){
+					var p:ParagraphElement = new ParagraphElement;
+					p.textAlign = "left";
+					var pe:ParagraphElement = tf.mxmlChildren[i];
+					for each (var fe:FlowElement in pe.mxmlChildren){
+						
+					p.addChild(fe);
+					fe.backgroundColor = 0xBFEFFF;
+					}
+					p.paddingLeft = 25;
+					content.textFlow.addChild(p);
+				}
 				scroller.validateNow();
 //				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight;
 				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maxHeight;
@@ -176,15 +232,35 @@
 //				chatService.send(from.text, to.text, sendMsg.text);
 //				chatService.addEventListener(ResultEvent.RESULT, succ);
 //				chatService.addEventListener(FaultEvent.FAULT, fault);
-				
+				if(!producer){
+					return;
+				}
 				
 				var message:AsyncMessage = new AsyncMessage();
-				message.body = {message:sendMsg.text, to:to.text, from:from.text};
+				var sendText = TextConverter.export(sendMsg.textFlow, TextConverter.TEXT_FIELD_HTML_FORMAT, ConversionType.STRING_TYPE);
+				message.body = {message:sendText, to:to.text, from:from.text};
 				message.headers = {type:'msg', to:to.text};
 				message.clientId = from.text;
 //				message.messageId = "msg" + Math.random();
 				producer.send(message);
-				content.text += from.text + ":" + "\n    " + sendMsg.text + "\n";
+//				content.text += from.text + ":" + "\n    " + sendMsg.text + "\n";
+//				content.appendText(from.text + ":");
+				var tf:TextFlow = TextConverter.importToFlow(sendText, TextConverter.TEXT_FIELD_HTML_FORMAT);
+				var cs = tf.mxmlChildren;
+				for(var i=0; i<cs.length; i++){
+					var p:ParagraphElement = new ParagraphElement;
+					p.textAlign = "right";
+					var pe:ParagraphElement = tf.mxmlChildren[i];
+					for each (var fe:FlowElement in pe.mxmlChildren){
+						
+					p.addChild(fe);
+					fe.backgroundColor = 0xFAF0E6;
+					}
+					p.paddingRight = 10;
+					content.textFlow.addChild(p);
+				}
+				
+//				content.textFlow = sendMsg.textFlow;
 				sendMsg.text = "";
 				scroller.validateNow();
 //				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight; 
@@ -236,12 +312,75 @@
 				so.data.to = to.text;
 			}
 			
+			var emoTimer:Timer = new Timer(10, 1);
+			
+			protected function emo_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var p = emo.localToGlobal(new Point(0, 0));
+				var p2 = this.localToGlobal(new Point);
+				trace("" + p);
+				trace("" + p2);
+				emoPanel.x = p.x;
+				emoPanel.y = p.y - emoPanel.height;
+				emoPanel.visible = true;
+				emoTimer.reset();
+				emoTimer.start();
+			}
+			
+			protected function vgroup1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(!emoTimer.running)
+					emoPanel.visible = false;
+			}
+			
+			function wave(){
+				var nati:NativeWindow = (FlexGlobals.topLevelApplication as WindowedApplication).nativeWindow;
+				nati.activate();
+				
+				Tweener.addTween(nati, {x:nati.x + 10, time:0.001, onComplete:function(){
+					Tweener.addTween(nati, {x:nati.x - 10, y:nati.y - 10, time:0.001, onComplete:function(){
+						Tweener.addTween(nati, {x:nati.x - 10, y:nati.y + 10, time:0.001, onComplete:function(){
+							Tweener.addTween(nati, {x:nati.x + 10, y:nati.y + 10, time:0.001, onComplete:function(){
+								Tweener.addTween(nati, {x:nati.x, y:nati.y - 10, time:0.001, onComplete:function(){
+									Tweener.addTween(nati, {x:nati.x + 10, time:0.001, onComplete:function(){
+										Tweener.addTween(nati, {x:nati.x - 10, y:nati.y - 10, time:0.001, onComplete:function(){
+											Tweener.addTween(nati, {x:nati.x - 10, y:nati.y + 10, time:0.001, onComplete:function(){
+												Tweener.addTween(nati, {x:nati.x + 10, y:nati.y + 10, time:0.001, onComplete:function(){
+													Tweener.addTween(nati, {x:nati.x, y:nati.y - 10, time:0.001, onComplete:function(){
+														nati.activate();
+													}});
+												}});
+											}});
+										}});
+									}});
+								}});
+							}});
+						}});
+					}});
+				}});
+			}
+			
+			protected function image1_clickHandler(event:MouseEvent):void
+			{
+				
+				var message:AsyncMessage = new AsyncMessage();
+				message.body = {to:to.text, from:from.text};
+				message.headers = {type:'sys.wave', to:to.text};
+				message.clientId = from.text;
+				//				message.messageId = "msg" + Math.random();
+				producer.send(message);
+				// TODO Auto-generated method stub
+				wave();
+			}
+			
 		]]>
 	</fx:Script>
 	<fx:Declarations>
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
 	</fx:Declarations>
-	<s:VGroup width="100%" height="100%" gap="1">
+	<s:VGroup width="100%" height="100%" gap="1" click="vgroup1_clickHandler(event)">
 		<s:BorderContainer width="100%" height="29">
 			<s:layout>
 				<s:HorizontalLayout paddingBottom="5" paddingTop="5"/>
@@ -257,15 +396,24 @@
 		<s:BorderContainer width="100%" height="100%" borderVisible="false">
 			<s:Scroller id="scroller" width="100%" height="100%">
 				
-		<s:RichEditableText id="content" width="100%" height="100%" editable="false" fontSize="16"
+		<s:RichEditableText focusEnabled="false" id="content" width="100%" height="100%" editable="false" fontSize="16"
 							paddingTop="3"/>
 			</s:Scroller>
 		</s:BorderContainer>
+		<s:BorderContainer width="100%" height="21" backgroundColor="#B7FFE1"  borderVisible="false">
+			<s:layout>
+				<s:HorizontalLayout paddingLeft="20"/>
+			</s:layout>
+			<s:Image width="30" id="emo" click="emo_clickHandler(event)" height="100%" scaleMode="letterbox"
+					 source="@Embed('assets/emoticons/drool.png')"/>
+			<s:Image width="30" height="100%" scaleMode="letterbox" source="assets/emoticons/angry.png" click="image1_clickHandler(event)"/>
+		</s:BorderContainer>
 		<s:HGroup width="100%" height="50">
-			<s:TextArea id="sendMsg" width="100%" height="100%" fontSize="16"
+			<s:RichEditableText id="sendMsg" width="100%" height="100%" fontSize="16"
 						keyDown="sendMsg_keyDownHandler(event)"/>
 			<s:Button id="btn_send" width="50" height="100%" label="发送"
 					  click="btn_send_clickHandler(event)"/>
 		</s:HGroup>
 	</s:VGroup>
+	<chat:EmoticonPanel id="emoPanel" x="0" y="0" visible="false" />
 </s:Group>

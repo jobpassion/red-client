@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
-					   xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="windowedapplication1_creationCompleteHandler(event)">
+					   xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="windowedapplication1_creationCompleteHandler(event)" xmlns:chat="com.redrum.flex.chat.*">
 	<fx:Script>
 		<![CDATA[
 			import flashx.textLayout.conversion.ConversionType;
 			import flashx.textLayout.conversion.TextConverter;
+			import flashx.textLayout.edit.EditManager;
 			import flashx.textLayout.elements.FlowElement;
 			import flashx.textLayout.elements.FlowLeafElement;
 			import flashx.textLayout.elements.ParagraphElement;
@@ -16,14 +17,20 @@
 			
 			protected function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
 			{
+				var timer:Timer = new Timer(5000);
+				timer.addEventListener(TimerEvent.TIMER, function(){
+					
+					var e2:InlineGraphicElement = new InlineGraphicElement;
+					e2.source = "assets/emoticons/angel.png";
+					//				var p:ParagraphElement = new ParagraphElement;
+//					p.addChild(e2);
+					(text.textFlow.interactionManager as EditManager).insertInlineGraphic("assets/emoticons/angel.png", null, null);
+				});
+				timer.start();
 				// TODO Auto-generated method stub
 				text.appendText("ddddddddddddddd");
 //				text.insertText("dddddddddddddd");
-				var e2:InlineGraphicElement = new InlineGraphicElement;
-				e2.source = "assets/emoticons/angel.png";
-//				var p:ParagraphElement = new ParagraphElement;
-				p.addChild(e2);
-				
+				trace(new Date());
 				trace(TextConverter.export(text.textFlow, TextConverter.TEXT_FIELD_HTML_FORMAT, ConversionType.STRING_TYPE).toString());
 			}
 			
@@ -33,7 +40,7 @@
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
 	</fx:Declarations>
 	
-	<s:RichEditableText id="text" editable="true" width="100%" height="100%">
+	<s:RichEditableText id="text" editable="true" width="100%" height="266">
 		<s:content>
 			<s:p id="p">
 				
@@ -43,4 +50,8 @@
 			</s:p>
 		</s:content>
 	</s:RichEditableText>
+	<s:Button x="227" y="76" label="按钮"/>
+	<chat:EmoticonPanel x="77" y="105">
+		
+	</chat:EmoticonPanel>
 </s:WindowedApplication>
