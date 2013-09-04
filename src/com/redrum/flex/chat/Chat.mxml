@@ -43,6 +43,7 @@
 			private var producer:Producer;
 			private var consumer:Consumer;
 			var chatService:RemoteObject;
+			var scrollTimer:Timer = new Timer(500, 1);
 			
 			protected function group1_creationCompleteHandler(event:FlexEvent):void
 			{
@@ -86,6 +87,13 @@
 					(sendMsg.textFlow.interactionManager as EditManager).insertInlineGraphic(e.data, null, null);
 					emoPanel.visible = false;
 				});
+				scrollTimer.addEventListener(TimerEvent.TIMER, scrollCont);
+			}
+			
+			function scrollCont(e){
+//				scroller.validateDisplayList();
+//				scroller.validateNow();
+				scroller.verticalScrollBar.value = 1000000000;
 			}
 			function onStatusTimer(e){
 				(FlexGlobals.topLevelApplication as WindowedApplication).status = "";
@@ -212,16 +220,26 @@
 					var pe:ParagraphElement = tf.mxmlChildren[i];
 					for each (var fe:FlowElement in pe.mxmlChildren){
 						
-					p.addChild(fe);
-					fe.backgroundColor = 0xBFEFFF;
+						p.addChild(fe);
+						fe.backgroundColor = 0xBFEFFF;
 					}
 					p.paddingLeft = 25;
 					content.textFlow.addChild(p);
 				}
-				scroller.validateNow();
+//				scroller.validateNow();
 //				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight;
-				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maxHeight;
+//				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maxHeight;
+				content.validateDisplayList();
+				content.validateNow();
+//				scroller.validateDisplayList();
+//				scroller.validateNow();
+//				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maximum + 100;
+//				scroller.validateNow();
+//				content.verticalScrollPosition += 1000;
+				scroller.validateDisplayList();
 				scroller.validateNow();
+				scrollTimer.reset();
+				scrollTimer.start();
 				Rcp.window.notifyUser(NotificationType.CRITICAL);
 			}
 			var so:SharedObject = SharedObject.getLocal("/");
@@ -263,10 +281,16 @@
 				
 //				content.textFlow = sendMsg.textFlow;
 				sendMsg.text = "";
-				scroller.validateNow();
+//				scroller.validateNow();
 //				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight; 
-				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maxHeight;
+//				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maxHeight + 1000;
+//				scroller.validateNow();
+//				content.validateDisplayList();
+//				content.validateNow();
+				scroller.validateDisplayList();
 				scroller.validateNow();
+				scrollTimer.reset();
+				scrollTimer.start();
 			}
 			
 			function succ(e){

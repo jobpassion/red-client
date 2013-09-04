@@ -39,7 +39,7 @@
   <flashCatalyst validateFlashCatalystCompatibility="false"/>
   <buildTargets>
     <buildTarget buildTargetName="default">
-      <airSettings airCertificatePath="E:/java/workspace/red-client/cert.p12" airTimestamp="true" anePathSet="true" version="1">
+      <airSettings airCertificatePath="D:/jia/git/red-client/cert.p12" airTimestamp="true" anePathSet="true" version="1">
         <airExcludes/>
         <anePaths/>
       </airSettings>
