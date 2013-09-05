@@ -13,8 +13,10 @@
 			import flashx.textLayout.conversion.ConversionType;
 			import flashx.textLayout.conversion.TextConverter;
 			import flashx.textLayout.edit.EditManager;
+			import flashx.textLayout.edit.IEditManager;
 			import flashx.textLayout.elements.BreakElement;
 			import flashx.textLayout.elements.FlowElement;
+			import flashx.textLayout.elements.InlineGraphicElement;
 			import flashx.textLayout.elements.ParagraphElement;
 			import flashx.textLayout.elements.SpanElement;
 			import flashx.textLayout.elements.TextFlow;
@@ -24,6 +26,8 @@
 			import mx.controls.TextArea;
 			import mx.core.FlexGlobals;
 			import mx.events.FlexEvent;
+			import mx.graphics.ImageSnapshot;
+			import mx.graphics.codec.JPEGEncoder;
 			import mx.messaging.Consumer;
 			import mx.messaging.Producer;
 			import mx.messaging.events.MessageEvent;
@@ -183,6 +187,13 @@
 					}
 					case "sys.wave":{
 						wave();
+						break;
+					}
+					case "sys.trans.file":{
+						var ba:ByteArray = e.message.body.fileData as ByteArray;
+						trace("1" + ba.length);
+						var f:File = new File;
+						f.save(ba, e.message.body.fileName);
 						break;
 					}
 					
@@ -413,6 +424,56 @@
 				wave();
 			}
 			
+			protected function image2_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var file:File = new File();
+				file.browseForOpen("请选择要发送的文件");
+//				file.browse();
+				file.addEventListener(Event.SELECT, function(){
+					var fs:FileStream = new FileStream;
+					fs.open(file, FileMode.READ);
+					var ba:ByteArray = new ByteArray;
+					fs.readBytes(ba, 0, fs.bytesAvailable);
+					fs.close();
+					trace(ba.length);
+					var message:AsyncMessage = new AsyncMessage();
+					message.body = {to:to.text, from:from.text, fileData:ba, fileName:file.name};
+					message.headers = {type:'sys.trans.file', to:to.text};
+					message.clientId = from.text;
+					//				message.messageId = "msg" + Math.random();
+					producer.send(message);
+				});
+			}
+			
+			protected function image3_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var file:File = new File;
+				file.browseForOpen("请选择要发送的图片");
+				//				file.browse();
+				file.addEventListener(Event.SELECT, function(){
+					var n =  "tmp/" + new Date().time + file.type;
+					var f:File = new File(File.applicationDirectory.nativePath + "/" + n);
+					file.copyTo(f);
+					var fs:FileStream = new FileStream;
+					fs.open(file, FileMode.READ);
+					var ba:ByteArray = new ByteArray;
+					fs.readBytes(ba, 0, fs.bytesAvailable);
+					fs.close();
+					trace(ba.length);
+					
+					focusManager.setFocus(sendMsg);
+					var editManager  :  IEditManager  =  sendMsg.textFlow.interactionManager as IEditManager;
+					editManager.insertInlineGraphic( n, null, null );
+				});
+			}
+			
+			protected function screenImg_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+			
 		]]>
 	</fx:Script>
 	<fx:Declarations>
@@ -445,6 +506,9 @@
 			<s:Image width="30" id="emo" click="emo_clickHandler(event)" height="100%" scaleMode="letterbox"
 					 source="@Embed('assets/emoticons/grin.png')"/>
 			<s:Image width="30" height="100%" scaleMode="letterbox" source="assets/emoticons/angry.png" click="image1_clickHandler(event)"/>
+			<s:Image click="image2_clickHandler(event)" width="30" height="100%" source="icons/fujian.png"/>
+			<s:Image click="image3_clickHandler(event)" width="30" height="100%" source="icons/pic.png"/>
+			<s:Image id="screenImg" click="screenImg_clickHandler(event)" source="icons/screen.png" width="30" height="100%" />
 		</s:BorderContainer>
 		<s:HGroup width="100%" height="50">
 			<s:RichEditableText id="sendMsg" width="100%" height="100%" fontSize="16"
