@@ -35,6 +35,7 @@
 			import mx.rpc.remoting.RemoteObject;
 			
 			import spark.components.Application;
+			import spark.components.VScrollBar;
 			import spark.components.WindowedApplication;
 			import spark.events.TextOperationEvent;
 			import spark.formatters.DateTimeFormatter;
@@ -43,7 +44,7 @@
 			private var producer:Producer;
 			private var consumer:Consumer;
 			var chatService:RemoteObject;
-			var scrollTimer:Timer = new Timer(500, 1);
+			var scrollTimer:Timer = new Timer(100, 1);
 			
 			protected function group1_creationCompleteHandler(event:FlexEvent):void
 			{
@@ -91,9 +92,15 @@
 			}
 			
 			function scrollCont(e){
-//				scroller.validateDisplayList();
-//				scroller.validateNow();
-				scroller.verticalScrollBar.value = 1000000000;
+				var scrollBar:VScrollBar = scroller.verticalScrollBar;
+				scrollBar.value = scrollBar.maximum;
+				scroller.validateNow();
+				
+				if (scrollBar.value != scrollBar.maximum) {
+					scrollBar.value = scrollBar.maximum;
+					scroller.validateNow();
+				}
+				return;
 			}
 			function onStatusTimer(e){
 				(FlexGlobals.topLevelApplication as WindowedApplication).status = "";
@@ -229,17 +236,18 @@
 //				scroller.validateNow();
 //				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight;
 //				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maxHeight;
-				content.validateDisplayList();
-				content.validateNow();
+//				content.validateDisplayList();
+//				content.validateNow();
 //				scroller.validateDisplayList();
 //				scroller.validateNow();
 //				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maximum + 100;
 //				scroller.validateNow();
 //				content.verticalScrollPosition += 1000;
-				scroller.validateDisplayList();
-				scroller.validateNow();
+//				scroller.validateDisplayList();
+//				scroller.validateNow();
 				scrollTimer.reset();
 				scrollTimer.start();
+//				scrollCont(null);
 				Rcp.window.notifyUser(NotificationType.CRITICAL);
 			}
 			var so:SharedObject = SharedObject.getLocal("/");
@@ -287,10 +295,11 @@
 //				scroller.validateNow();
 //				content.validateDisplayList();
 //				content.validateNow();
-				scroller.validateDisplayList();
-				scroller.validateNow();
+//				scroller.validateDisplayList();
+//				scroller.validateNow();
 				scrollTimer.reset();
 				scrollTimer.start();
+//				scrollCont(null);
 			}
 			
 			function succ(e){
