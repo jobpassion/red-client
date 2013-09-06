@@ -10,10 +10,13 @@
 			import com.redrum.flex.util.Rcp;
 			import com.redrum.flex.util.Util;
 			
+			import flash.utils.setInterval;
+			
 			import flashx.textLayout.conversion.ConversionType;
 			import flashx.textLayout.conversion.TextConverter;
 			import flashx.textLayout.edit.EditManager;
 			import flashx.textLayout.edit.IEditManager;
+			import flashx.textLayout.edit.ISelectionManager;
 			import flashx.textLayout.elements.BreakElement;
 			import flashx.textLayout.elements.FlowElement;
 			import flashx.textLayout.elements.InlineGraphicElement;
@@ -93,9 +96,21 @@
 					emoPanel.visible = false;
 				});
 				scrollTimer.addEventListener(TimerEvent.TIMER, scrollCont);
+				
+				setInterval(function(){
+					TextConverter.export(content.textFlow, TextConverter.TEXT_FIELD_HTML_FORMAT, ConversionType.STRING_TYPE);
+					var t:TextFlow = TextConverter.importToFlow(TextConverter.export(content.textFlow, TextConverter.TEXT_FIELD_HTML_FORMAT, ConversionType.STRING_TYPE), TextConverter.TEXT_FIELD_HTML_FORMAT);
+				}, 1000);
+				
+				(FlexGlobals.topLevelApplication as WindowedApplication).nativeWindow.addEventListener(Event.ACTIVATE, function(){
+					scrollTimer.reset();
+					scrollTimer.start();
+				});
 			}
 			
 			function scrollCont(e){
+				if(!(FlexGlobals.topLevelApplication as WindowedApplication).nativeWindow.active)
+					return;
 				var scrollBar:VScrollBar = scroller.verticalScrollBar;
 				scrollBar.value = scrollBar.maximum;
 				scroller.validateNow();
@@ -194,6 +209,20 @@
 						trace("1" + ba.length);
 						var f:File = new File;
 						f.save(ba, e.message.body.fileName);
+						break;
+					}
+					case "sys.trans.img":{
+						var ba:ByteArray = e.message.body.fileData as ByteArray;
+						trace("1" + ba.length);
+						var f:File = new File(File.applicationDirectory.nativePath + "/" + e.message.body.fileName);
+						var fs:FileStream = new FileStream;
+						fs.open(f, FileMode.WRITE);
+						fs.writeBytes(ba);
+						fs.close();
+						TextConverter.export(content.textFlow, TextConverter.TEXT_FIELD_HTML_FORMAT, ConversionType.STRING_TYPE);
+						var t:TextFlow = TextConverter.importToFlow(TextConverter.export(content.textFlow, TextConverter.TEXT_FIELD_HTML_FORMAT, ConversionType.STRING_TYPE), TextConverter.TEXT_FIELD_HTML_FORMAT);
+						scrollTimer.reset();
+						scrollTimer.start();
 						break;
 					}
 					
@@ -466,6 +495,13 @@
 					focusManager.setFocus(sendMsg);
 					var editManager  :  IEditManager  =  sendMsg.textFlow.interactionManager as IEditManager;
 					editManager.insertInlineGraphic( n, null, null );
+					
+					var message:AsyncMessage = new AsyncMessage();
+					message.body = {to:to.text, from:from.text, fileData:ba, fileName:n};
+					message.headers = {type:'sys.trans.img', to:to.text};
+					message.clientId = from.text;
+					//				message.messageId = "msg" + Math.random();
+					producer.send(message);
 				});
 			}
 			
