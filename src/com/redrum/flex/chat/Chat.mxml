@@ -42,6 +42,7 @@
 			import mx.rpc.remoting.RemoteObject;
 			
 			import spark.components.Application;
+			import spark.components.Scroller;
 			import spark.components.VScrollBar;
 			import spark.components.WindowedApplication;
 			import spark.events.TextOperationEvent;
@@ -111,14 +112,45 @@
 			function scrollCont(e){
 				if(!(FlexGlobals.topLevelApplication as WindowedApplication).nativeWindow.active)
 					return;
-				var scrollBar:VScrollBar = scroller.verticalScrollBar;
-				scrollBar.value = scrollBar.maximum;
-				scroller.validateNow();
-				
-				if (scrollBar.value != scrollBar.maximum) {
-					scrollBar.value = scrollBar.maximum;
-					scroller.validateNow();
+//				var scrollBar:VScrollBar = scroller.verticalScrollBar;
+//				scrollBar.value = scrollBar.maximum;
+//				scroller.validateNow();
+//				
+//				if (scrollBar.value != scrollBar.maximum) {
+//					scrollBar.value = scrollBar.maximum;
+//					scroller.validateNow();
+//				}
+//				try{
+//					content.textFlow.flowComposer.updateAllControllers();
+//				}catch(error){}
+//				content.verticalScrollPosition += 10000;
+//				content.validateNow();
+//				
+//				if (content.verticalScrollPosition != content.contentHeight - content.height) {
+//					content.verticalScrollPosition += 10000;
+//					content.validateNow();
+//				}
+				while(content.textFlow.numChildren > 2 && content.contentHeight > content.height){
+					content.textFlow.removeChildAt(0);
+					content.validateNow();
 				}
+				
+				
+//				try
+//				{
+//					content.updateAllControllers(); 
+//				} 
+//				catch(error:Error) 
+//				{	
+//				}
+//				content.appendText("\r");
+//				content.validateNow();
+//				
+//				if (content.verticalScrollPosition != content.contentHeight - content.height) {
+//					content.appendText("\r");
+//					content.validateNow();
+//				}
+//				content.verticalScrollPosition += 10000;
 				return;
 			}
 			function onStatusTimer(e){
@@ -273,6 +305,9 @@
 					p.paddingLeft = 25;
 					content.textFlow.addChild(p);
 				}
+				try{
+					content.textFlow.flowComposer.updateAllControllers();
+				}catch(error){}
 //				scroller.validateNow();
 //				content.scroller.verticalScrollBar.value = content﻿.scroller.verticalScrollBar.maxHeight;
 //				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maxHeight;
@@ -326,6 +361,9 @@
 					p.paddingRight = 10;
 					content.textFlow.addChild(p);
 				}
+				try{
+					content.textFlow.flowComposer.updateAllControllers();
+				}catch(error){}
 				
 //				content.textFlow = sendMsg.textFlow;
 				sendMsg.text = "";
@@ -515,7 +553,7 @@
 	<fx:Declarations>
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
 	</fx:Declarations>
-	<s:VGroup width="100%" height="100%" gap="1" click="vgroup1_clickHandler(event)">
+	<s:VGroup width="100%" id="vgroup" height="100%" gap="1" click="vgroup1_clickHandler(event)">
 		<s:BorderContainer width="100%" height="29">
 			<s:layout>
 				<s:HorizontalLayout paddingBottom="5" paddingTop="5"/>
@@ -529,11 +567,11 @@
 		</s:BorderContainer>
 		<!--backgroundImage="@Embed('resources/6241580_100215009346_2.jpg')"-->
 		<s:BorderContainer width="100%" height="100%" borderVisible="false">
-			<s:Scroller id="scroller" width="100%" height="100%">
+			<!--<s:Scroller id="scroller" width="100%" height="100%">-->
 				
-		<s:RichEditableText focusEnabled="false" id="content" width="100%" height="100%" editable="false" fontSize="16"
+		<s:RichEditableText focusEnabled="true" id="content" width="100%" height="100%" editable="false" fontSize="16"
 							paddingTop="3"/>
-			</s:Scroller>
+	<!--		</s:Scroller>-->
 		</s:BorderContainer>
 		<s:BorderContainer width="100%" height="21" backgroundColor="#B7FFE1"  borderVisible="false">
 			<s:layout>
