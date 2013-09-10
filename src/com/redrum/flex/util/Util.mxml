@@ -8,6 +8,11 @@
 	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			
+			import spark.components.WindowedApplication;
+			public static var application:WindowedApplication = FlexGlobals.topLevelApplication as WindowedApplication;
+			public static var window:NativeWindow = application.nativeWindow;
 			public static function fail(e:Event){
 				if(Rcp.argus == "dev")
 					Alert.show("出错啦！" + e.toString());

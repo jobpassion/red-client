@@ -57,8 +57,7 @@
 			protected function group1_creationCompleteHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
-				
-				(FlexGlobals.topLevelApplication as Application).addEventListener("rpc_init", function(){
+//				(FlexGlobals.topLevelApplication as Application).addEventListener("rpc_init", function(){
 					chatService = Rcp.getService("chatService");
 					var timer:Timer = new Timer(4000);
 					timer.addEventListener(TimerEvent.TIMER, function(){
@@ -80,7 +79,7 @@
 					producer.destination = "chat_dest";
 					producer.channelSet = Rcp.cs;
 //					producer.subtopic = "tick";
-				});
+//				});
 				
 				statusTimer.addEventListener(TimerEvent.TIMER, onStatusTimer);
 				if(null != so.data.from){
@@ -584,7 +583,7 @@
 			<s:Image click="image3_clickHandler(event)" width="30" height="100%" source="icons/pic.png"/>
 			<s:Image id="screenImg" click="screenImg_clickHandler(event)" source="icons/screen.png" width="30" height="100%" />
 		</s:BorderContainer>
-		<s:HGroup width="100%" height="50">
+		<s:HGroup width="100%" height="20%">
 			<s:RichEditableText id="sendMsg" width="100%" height="100%" fontSize="16"
 						keyDown="sendMsg_keyDownHandler(event)"/>
 			<s:Button id="btn_send" width="50" height="100%" label="发送"

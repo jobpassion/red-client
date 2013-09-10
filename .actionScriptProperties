@@ -33,8 +33,17 @@
     <application path="Test5.mxml">
       <airExcludes/>
     </application>
+    <application path="RedClient.mxml">
+      <airExcludes/>
+    </application>
+    <application path="Test7.mxml">
+      <airExcludes/>
+    </application>
   </applications>
-  <modules/>
+  <modules>
+    <module application="src/RedClient.mxml" destPath="ChatModule.swf" optimize="false" sourcePath="src/ChatModule.mxml"/>
+    <module application="src/RedClient.mxml" destPath="Test6.swf" optimize="false" sourcePath="src/Test6.mxml"/>
+  </modules>
   <buildCSSFiles/>
   <flashCatalyst validateFlashCatalystCompatibility="false"/>
   <buildTargets>
