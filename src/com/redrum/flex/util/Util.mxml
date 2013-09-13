@@ -14,6 +14,7 @@
 			public static var application:WindowedApplication = FlexGlobals.topLevelApplication as WindowedApplication;
 			public static var window:NativeWindow = application.nativeWindow;
 			public static function fail(e:Event){
+				trace(e.toString());
 				if(Rcp.argus == "dev")
 					Alert.show("出错啦！" + e.toString());
 			}
